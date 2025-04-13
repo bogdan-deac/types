@@ -11,6 +11,8 @@
 
 import Data.Kind (Type)
 import Data.Proxy
+import Data.Type.Bool (If)
+import Data.Type.Equality
 import GHC.TypeLits
 
 -- Type-level Length function
@@ -39,6 +41,22 @@ testReverse = Check
 
 testReverse' :: Check (Reverse '[1, 2, 3]) '[3, 2, 1]
 testReverse' = Check
+
+-- Insert x into a sorted type-level list of Nats
+type family Insert (x :: Nat) (xs :: [Nat]) :: [Nat] where
+  Insert x '[] = '[x]
+  Insert x (y ': ys) =
+    If
+      (CmpNat x y == 'LT)
+      (x ': y ': ys)
+      (y ': Insert x ys)
+
+type family Sort (xs :: [Nat]) where
+  Sort '[] = '[]
+  Sort (x ': xs) = Insert x (Sort xs)
+
+testSort :: Check (Sort '[4, 2, 1, 3]) '[1, 2, 3, 4]
+testSort = Check
 
 main :: IO ()
 main = do
