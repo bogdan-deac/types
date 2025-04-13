@@ -39,8 +39,9 @@ type L = '[Bool, String, Integer]
 testReverse :: Check (Reverse L) '[Integer, String, Bool]
 testReverse = Check
 
-testReverse' :: Check (Reverse '[1, 2, 3]) '[3, 2, 1]
-testReverse' = Check
+-- this doesn't type check
+-- testReverse' :: Check (Reverse '[1, 2, 3]) '[3, 2, 1,0]
+-- testReverse' = Check
 
 -- Insert x into a sorted type-level list of Nats
 type family Insert (x :: Nat) (xs :: [Nat]) :: [Nat] where
@@ -57,6 +58,24 @@ type family Sort (xs :: [Nat]) where
 
 testSort :: Check (Sort '[4, 2, 1, 3]) '[1, 2, 3, 4]
 testSort = Check
+
+type family Filter (x :: a) (xs :: [a]) :: [a] where
+  Filter _ '[] = '[]
+  Filter a (x ': xs) =
+    If
+      (x == a)
+      (Filter a xs)
+      (x ': Filter a xs)
+
+testFilter :: Check (Filter 4 '[1, 4, 2, 4, 3, 4, 5]) '[1, 2, 3, 5]
+testFilter = Check
+
+type family Nub (xs :: [Nat]) :: [Nat] where
+  Nub '[] = '[]
+  Nub (x ': xs) = x ': Nub (Filter x xs)
+
+testNub :: Check (Nub '[1, 2, 1, 3, 1, 4, 2, 2, 2, 3, 2, 4]) '[1, 2, 3, 4]
+testNub = Check
 
 main :: IO ()
 main = do
